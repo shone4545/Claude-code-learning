@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Schedule Vaccine · {{ batch.batch_code }}{% endblock %}
+{% block content %}
+<h2>Schedule Vaccine · {{ batch.batch_code }}</h2>
+<form method="post">
+  <div class="grid">
+    <div class="field">
+      <label>Scheduled Date</label>
+      <input name="scheduled_date" type="date" value="{{ today }}" required>
+    </div>
+    <div class="field">
+      <label>Vaccine Name</label>
+      <input name="vaccine_name" required placeholder="e.g. Newcastle + IB (LaSota)">
+    </div>
+    <div class="field">
+      <label>Route</label>
+      <select name="route">
+        <option>drinking water</option>
+        <option>spray</option>
+        <option>eye drop</option>
+        <option>subcutaneous</option>
+        <option>intramuscular</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Doses Planned</label>
+      <input name="doses_planned" type="number" min="0" value="{{ batch.intake_count }}">
+    </div>
+  </div>
+  <div class="field">
+    <label>Notes</label>
+    <textarea name="notes"></textarea>
+  </div>
+  <div class="row">
+    <button>Schedule</button>
+    <a class="btn secondary" href="{{ url_for('batch_detail', batch_id=batch.id) }}">Cancel</a>
+  </div>
+</form>
+{% endblock %}

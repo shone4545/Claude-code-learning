@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Batches{% endblock %}
+{% block content %}
+<div class="row">
+  <h2 class="grow">Batches</h2>
+  <a class="btn" href="{{ url_for('new_batch') }}">+ New Batch</a>
+</div>
+
+<div class="tabs">
+  <a class="{{ 'active' if status == 'active' else '' }}" href="?status=active">Active</a>
+  <a class="{{ 'active' if status == 'harvested' else '' }}" href="?status=harvested">Harvested</a>
+  <a class="{{ 'active' if status == 'closed' else '' }}" href="?status=closed">Closed</a>
+  <a class="{{ 'active' if status == 'all' else '' }}" href="?status=all">All</a>
+</div>
+
+{% if batches %}
+<table>
+  <thead><tr>
+    <th>Code</th><th>Status</th><th>House</th><th>Intake Date</th>
+    <th>Age</th><th>Intake</th><th>Alive</th><th>Mortality</th>
+    <th>Wt (g)</th><th>FCR</th><th>Projected Harvest</th>
+  </tr></thead>
+  <tbody>
+    {% for b in batches %}
+      {% set m = metrics[b.id] %}
+      <tr>
+        <td><a href="{{ url_for('batch_detail', batch_id=b.id) }}">{{ b.batch_code }}</a></td>
+        <td><span class="badge {{ b.status }}">{{ b.status }}</span></td>
+        <td>{{ b.house or '—' }}</td>
+        <td class="nowrap">{{ b.intake_date }}</td>
+        <td>{{ m.age_days }}d</td>
+        <td>{{ b.intake_count|comma }}</td>
+        <td>{{ m.birds_alive|comma }}</td>
+        <td>{{ m.mortality_pct|pct }}</td>
+        <td>{{ m.latest_body_weight_g|num(0) if m.latest_body_weight_g else '—' }}</td>
+        <td>{{ m.fcr|num if m.fcr else '—' }}</td>
+        <td class="nowrap">{{ m.projected_harvest_date or '—' }}</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}<p class="muted">No batches with status “{{ status }}”.</p>{% endif %}
+{% endblock %}

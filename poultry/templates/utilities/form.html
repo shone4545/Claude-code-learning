@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}New Utility Reading{% endblock %}
+{% block content %}
+<h2>New Utility Reading</h2>
+<form method="post">
+  <div class="grid">
+    <div class="field">
+      <label>Date</label>
+      <input name="reading_date" type="date" value="{{ today }}" required>
+    </div>
+    <div class="field">
+      <label>Type</label>
+      <select name="utility_type" required>
+        <option>electricity</option>
+        <option>water</option>
+        <option>gas</option>
+        <option>fuel</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Quantity</label>
+      <input name="quantity" type="number" step="0.01" min="0" required>
+    </div>
+    <div class="field">
+      <label>Unit</label>
+      <input name="unit" value="kWh">
+    </div>
+    <div class="field">
+      <label>Cost</label>
+      <input name="cost" type="number" step="0.01" min="0">
+    </div>
+    <div class="field">
+      <label>Batch (optional)</label>
+      <select name="batch_id">
+        <option value="">— shared / general —</option>
+        {% for b in batches %}
+          <option value="{{ b.id }}">{{ b.batch_code }} (House {{ b.house }})</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+  <div class="field">
+    <label>Notes</label>
+    <textarea name="notes"></textarea>
+  </div>
+  <div class="row">
+    <button>Save</button>
+    <a class="btn secondary" href="{{ url_for('list_utilities') }}">Cancel</a>
+  </div>
+</form>
+{% endblock %}

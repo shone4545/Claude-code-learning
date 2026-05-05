@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Daily Record · {{ batch.batch_code }}{% endblock %}
+{% block content %}
+<h2>Daily Record · {{ batch.batch_code }} <span class="muted">(d{{ age_days }})</span></h2>
+{% if record %}<p class="muted">Editing existing record for {{ record.record_date }}.</p>{% endif %}
+
+<form method="post">
+  <div class="grid">
+    <div class="field">
+      <label>Date</label>
+      <input name="record_date" type="date" value="{{ record.record_date if record else prefill_date }}" required>
+    </div>
+    <div class="field">
+      <label>Mortality</label>
+      <input name="mortality_count" type="number" min="0" value="{{ record.mortality_count if record else 0 }}">
+    </div>
+    <div class="field">
+      <label>Culls</label>
+      <input name="cull_count" type="number" min="0" value="{{ record.cull_count if record else 0 }}">
+    </div>
+    <div class="field">
+      <label>Feed consumed (kg)</label>
+      <input name="feed_consumed_kg" type="number" step="0.1" min="0" value="{{ record.feed_consumed_kg if record else '' }}">
+    </div>
+    <div class="field">
+      <label>Water consumed (L)</label>
+      <input name="water_consumed_l" type="number" step="0.1" min="0" value="{{ record.water_consumed_l if record else '' }}">
+    </div>
+    <div class="field">
+      <label>Avg body weight (g)</label>
+      <input name="avg_body_weight_g" type="number" step="1" min="0" value="{{ record.avg_body_weight_g if record else '' }}">
+    </div>
+    <div class="field">
+      <label>Sample size (birds weighed)</label>
+      <input name="sample_size" type="number" min="0" value="{{ record.sample_size if record and record.sample_size else '' }}">
+    </div>
+    <div class="field">
+      <label>Temperature (°C)</label>
+      <input name="temperature_c" type="number" step="0.1" value="{{ record.temperature_c if record and record.temperature_c else '' }}">
+    </div>
+    <div class="field">
+      <label>Humidity (%)</label>
+      <input name="humidity_pct" type="number" step="0.1" value="{{ record.humidity_pct if record and record.humidity_pct else '' }}">
+    </div>
+  </div>
+  <div class="field">
+    <label>Notes</label>
+    <textarea name="notes">{{ record.notes if record else '' }}</textarea>
+  </div>
+  <div class="row">
+    <button>Save Record</button>
+    <a class="btn secondary" href="{{ url_for('batch_detail', batch_id=batch.id) }}">Cancel</a>
+  </div>
+</form>
+{% endblock %}

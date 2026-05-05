@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Harvest Planner{% endblock %}
+{% block content %}
+<h2>Harvest Planner</h2>
+<p class="muted">Projection uses recent ADG when available, falling back to the Cobb 500 standard curve. Target weight midpoint is the trigger.</p>
+
+{% if rows %}
+<table>
+  <thead><tr>
+    <th>Batch</th><th>Intake</th><th>Age</th><th>Birds Alive</th>
+    <th>Wt (g)</th><th>vs Std</th><th>ADG</th><th>Target</th>
+    <th>Projected Date</th><th>Days Out</th>
+  </tr></thead>
+  <tbody>
+    {% for m in rows %}
+    <tr>
+      <td><a href="{{ url_for('batch_detail', batch_id=m.batch_id) }}">{{ m.batch_code }}</a></td>
+      <td class="nowrap">{{ m.intake_date }}</td>
+      <td>{{ m.age_days }}d</td>
+      <td>{{ m.birds_alive|comma }}</td>
+      <td>{{ m.latest_body_weight_g|num(0) if m.latest_body_weight_g else '—' }}</td>
+      <td>
+        {% if m.weight_variance_pct is not none %}
+          <span class="{% if m.weight_variance_pct < -5 %}bad{% elif m.weight_variance_pct < 0 %}warn{% else %}good{% endif %}">
+            {{ '%+.1f'|format(m.weight_variance_pct) }}%
+          </span>
+        {% else %}—{% endif %}
+      </td>
+      <td>{{ m.adg_g|num(0) if m.adg_g else '—' }}</td>
+      <td class="nowrap">{{ m.target_min_g }}–{{ m.target_max_g }} g</td>
+      <td class="nowrap">{{ m.projected_harvest_date or '—' }}</td>
+      <td>
+        {% if m.projected_harvest_date %}
+          {{ (m.projected_harvest_date - m.intake_date).days - m.age_days }}
+        {% else %}—{% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}<p class="muted">No active batches.</p>{% endif %}
+{% endblock %}

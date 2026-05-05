@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}New Batch{% endblock %}
+{% block content %}
+<h2>New Batch Intake</h2>
+
+<form method="post">
+  <div class="grid">
+    <div class="field">
+      <label>Batch Code</label>
+      <input name="batch_code" value="{{ suggested_code }}" required>
+    </div>
+    <div class="field">
+      <label>Intake Date</label>
+      <input name="intake_date" type="date" value="{{ today }}" required>
+    </div>
+    <div class="field">
+      <label>Intake Count (chicks)</label>
+      <input name="intake_count" type="number" min="1" required>
+    </div>
+    <div class="field">
+      <label>House / Shed</label>
+      <input name="house" placeholder="e.g. House 3">
+    </div>
+    <div class="field">
+      <label>Breed</label>
+      <input name="breed" value="Cobb 500">
+    </div>
+    <div class="field">
+      <label>Target Weight Min (g)</label>
+      <input name="target_weight_min_g" type="number" value="2100">
+    </div>
+    <div class="field">
+      <label>Target Weight Max (g)</label>
+      <input name="target_weight_max_g" type="number" value="2500">
+    </div>
+  </div>
+  <div class="field">
+    <label>Notes</label>
+    <textarea name="notes"></textarea>
+  </div>
+  <div class="field">
+    <label><input type="checkbox" name="auto_vaccine" checked> Auto-create default vaccine schedule (d7 ND+IB, d14 IBD, d21 ND booster)</label>
+  </div>
+  <div class="row">
+    <button type="submit">Create Batch</button>
+    <a class="btn secondary" href="{{ url_for('list_batches') }}">Cancel</a>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Utilities{% endblock %}
+{% block content %}
+<div class="row">
+  <h2 class="grow">Utility Readings</h2>
+  <a class="btn" href="{{ url_for('new_utility') }}">+ New Reading</a>
+</div>
+
+<div class="tabs">
+  <a class="{{ 'active' if days == 7 else '' }}" href="?days=7">7d</a>
+  <a class="{{ 'active' if days == 30 else '' }}" href="?days=30">30d</a>
+  <a class="{{ 'active' if days == 90 else '' }}" href="?days=90">90d</a>
+</div>
+
+<div class="kpis">
+  {% for utype, agg in totals_by_type.items() %}
+    <div class="kpi">
+      <div class="label">{{ utype|capitalize }}</div>
+      <div class="value">{{ '%.1f'|format(agg.qty) }} <span class="muted small">{{ agg.unit }}</span></div>
+      <div class="sub">cost {{ '%.2f'|format(agg.cost) }}</div>
+    </div>
+  {% endfor %}
+</div>
+
+{% if rows %}
+<table>
+  <thead><tr><th>Date</th><th>Type</th><th>Quantity</th><th>Unit</th><th>Cost</th><th>Batch</th><th>Notes</th></tr></thead>
+  <tbody>
+    {% for r in rows %}
+    <tr>
+      <td class="nowrap">{{ r.reading_date }}</td>
+      <td>{{ r.utility_type }}</td>
+      <td>{{ '%.2f'|format(r.quantity) }}</td>
+      <td>{{ r.unit }}</td>
+      <td>{{ '%.2f'|format(r.cost) }}</td>
+      <td>{{ r.batch.batch_code if r.batch else '—' }}</td>
+      <td class="small muted">{{ r.notes }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}<p class="muted">No readings.</p>{% endif %}
+{% endblock %}

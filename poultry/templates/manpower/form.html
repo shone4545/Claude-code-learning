@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}New Manpower Entry{% endblock %}
+{% block content %}
+<h2>New Manpower Entry</h2>
+<form method="post">
+  <div class="grid">
+    <div class="field">
+      <label>Date</label>
+      <input name="log_date" type="date" value="{{ today }}" required>
+    </div>
+    <div class="field">
+      <label>Worker Name</label>
+      <input name="worker_name" required>
+    </div>
+    <div class="field">
+      <label>Role</label>
+      <input name="role" value="farmhand">
+    </div>
+    <div class="field">
+      <label>Hours</label>
+      <input name="hours" type="number" step="0.25" min="0" required>
+    </div>
+    <div class="field">
+      <label>Batch (optional)</label>
+      <select name="batch_id">
+        <option value="">— shared / general —</option>
+        {% for b in batches %}
+          <option value="{{ b.id }}">{{ b.batch_code }} (House {{ b.house }})</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label>Task</label>
+      <input name="task" placeholder="e.g. feeding, vaccination, cleaning">
+    </div>
+  </div>
+  <div class="field">
+    <label>Notes</label>
+    <textarea name="notes"></textarea>
+  </div>
+  <div class="row">
+    <button>Save</button>
+    <a class="btn secondary" href="{{ url_for('list_manpower') }}">Cancel</a>
+  </div>
+</form>
+{% endblock %}
