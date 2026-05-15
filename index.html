@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>World Cup 2026 Tracker</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --panel: #1e293b;
+    --panel2: #273449;
+    --border: #334155;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --accent: #22d3ee;
+    --accent2: #facc15;
+    --green: #22c55e;
+    --red: #ef4444;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.4;
+  }
+  header {
+    background: linear-gradient(90deg, #1e3a8a, #7c2d12);
+    padding: 16px;
+    text-align: center;
+    border-bottom: 2px solid var(--accent);
+  }
+  header h1 { margin: 0; font-size: 1.4rem; letter-spacing: 0.5px; }
+  header .sub { color: var(--muted); font-size: 0.85rem; margin-top: 4px; }
+  nav {
+    display: flex;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  nav button {
+    flex: 1;
+    min-width: 90px;
+    background: none;
+    border: none;
+    color: var(--muted);
+    padding: 12px 8px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+  }
+  nav button.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+    background: var(--panel2);
+  }
+  main { padding: 12px; max-width: 1200px; margin: 0 auto; }
+  section { display: none; }
+  section.active { display: block; }
+  .group-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 12px;
+  }
+  .group {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+  }
+  .group h3 {
+    margin: 0 0 8px;
+    color: var(--accent2);
+    font-size: 1rem;
+  }
+  .team-input {
+    width: 100%;
+    background: var(--panel2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 4px 6px;
+    margin: 2px 0;
+    font-size: 0.85rem;
+  }
+  .team-input:focus { outline: 1px solid var(--accent); }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+    margin-top: 8px;
+  }
+  th, td {
+    padding: 4px 6px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+  }
+  th { color: var(--muted); font-weight: 500; }
+  td.team-name { text-align: left; font-weight: 500; }
+  tr.qual-1, tr.qual-2 { background: rgba(34, 197, 94, 0.12); }
+  tr.qual-3 { background: rgba(250, 204, 21, 0.10); }
+  .matches { margin-top: 10px; }
+  .match {
+    display: grid;
+    grid-template-columns: 1fr 40px 12px 40px 1fr;
+    gap: 4px;
+    align-items: center;
+    margin: 4px 0;
+    font-size: 0.8rem;
+  }
+  .match .home { text-align: right; }
+  .match .away { text-align: left; }
+  .score-input {
+    width: 100%;
+    background: var(--panel2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 3px;
+    text-align: center;
+    font-size: 0.85rem;
+  }
+  .score-input:focus { outline: 1px solid var(--accent); }
+  .qualified-summary {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    margin-bottom: 12px;
+  }
+  .qualified-summary h2 { margin-top: 0; color: var(--accent); font-size: 1.1rem; }
+  .qual-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 6px;
+    margin-top: 8px;
+  }
+  .qual-tag {
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 0.85rem;
+  }
+  .qual-tag .pos { color: var(--muted); font-size: 0.75rem; margin-right: 4px; }
+  .qual-tag.w { border-left: 3px solid var(--green); }
+  .qual-tag.r { border-left: 3px solid var(--accent); }
+  .qual-tag.t { border-left: 3px solid var(--accent2); }
+  .bracket {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+  }
+  .round {
+    flex-shrink: 0;
+    min-width: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    gap: 8px;
+  }
+  .round h3 {
+    margin: 0 0 8px;
+    color: var(--accent2);
+    text-align: center;
+    font-size: 0.9rem;
+  }
+  .ko-match {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px;
+    font-size: 0.8rem;
+  }
+  .ko-row {
+    display: grid;
+    grid-template-columns: 1fr 36px;
+    gap: 4px;
+    align-items: center;
+    padding: 2px 0;
+  }
+  .ko-row.win { color: var(--green); font-weight: 600; }
+  .ko-team {
+    background: var(--panel2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 3px 4px;
+    font-size: 0.78rem;
+  }
+  .actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+  .btn {
+    background: var(--accent);
+    color: #0f172a;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 0.85rem;
+  }
+  .btn:hover { opacity: 0.9; }
+  .btn.danger { background: var(--red); color: #fff; }
+  .btn.ghost { background: var(--panel2); color: var(--text); border: 1px solid var(--border); }
+  .legend { color: var(--muted); font-size: 0.75rem; margin-top: 6px; }
+  .legend span { display: inline-block; width: 10px; height: 10px; border-radius: 2px; vertical-align: middle; margin-right: 3px; }
+  .legend .l1 { background: var(--green); }
+  .legend .l2 { background: var(--accent); }
+  .legend .l3 { background: var(--accent2); }
+  .third-table { margin-top: 12px; }
+  .empty-msg { color: var(--muted); font-style: italic; padding: 20px; text-align: center; }
+  @media (max-width: 600px) {
+    .match { grid-template-columns: 1fr 36px 10px 36px 1fr; font-size: 0.72rem; }
+    nav button { font-size: 0.78rem; padding: 10px 4px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>World Cup 2026 Tracker</h1>
+  <div class="sub">USA · Canada · Mexico  ·  48 teams · 12 groups</div>
+</header>
+<nav>
+  <button data-tab="groups" class="active">Groups</button>
+  <button data-tab="standings">Qualified</button>
+  <button data-tab="bracket">Bracket</button>
+  <button data-tab="settings">Settings</button>
+</nav>
+<main>
+  <section id="groups" class="active"></section>
+  <section id="standings"></section>
+  <section id="bracket"></section>
+  <section id="settings">
+    <div class="qualified-summary">
+      <h2>Settings</h2>
+      <p>All edits autosave to your browser (localStorage). Data stays on this device.</p>
+      <div class="actions">
+        <button class="btn ghost" id="export-btn">Export JSON</button>
+        <button class="btn ghost" id="import-btn">Import JSON</button>
+        <input type="file" id="import-file" accept="application/json" style="display:none">
+        <button class="btn danger" id="reset-btn">Reset all data</button>
+      </div>
+      <p class="legend" style="margin-top:14px;">
+        Qualification rule: top 2 from each group + 8 best 3rd-placed teams advance to Round of 32.
+        Sort order: Points → Goal Difference → Goals For.
+      </p>
+    </div>
+  </section>
+</main>
+
+<script>
+const GROUPS = ['A','B','C','D','E','F','G','H','I','J','K','L'];
+const STORAGE_KEY = 'wc2026-tracker-v1';
+
+const MATCH_PAIRS = [[0,1],[2,3],[0,2],[1,3],[0,3],[1,2]];
+
+const TEAM_NAMES = {
+  A: ['Mexico', 'South Africa', 'Korea Republic', 'Czechia'],
+  B: ['Canada', 'Bosnia and Herzegovina', 'Qatar', 'Switzerland'],
+  C: ['Brazil', 'Morocco', 'Haiti', 'Scotland'],
+  D: ['United States', 'Paraguay', 'Australia', 'Türkiye'],
+  E: ['Germany', 'Curaçao', 'Ivory Coast', 'Ecuador'],
+  F: ['Netherlands', 'Japan', 'Sweden', 'Tunisia'],
+  G: ['Belgium', 'Egypt', 'Iran', 'New Zealand'],
+  H: ['Spain', 'Cape Verde', 'Saudi Arabia', 'Uruguay'],
+  I: ['France', 'Senegal', 'Iraq', 'Norway'],
+  J: ['Argentina', 'Algeria', 'Austria', 'Jordan'],
+  K: ['Portugal', 'DR Congo', 'Uzbekistan', 'Colombia'],
+  L: ['England', 'Croatia', 'Ghana', 'Panama'],
+};
+
+function defaultState() {
+  const teams = {};
+  const groupMatches = {};
+  GROUPS.forEach(g => {
+    teams[g] = [...TEAM_NAMES[g]];
+    groupMatches[g] = MATCH_PAIRS.map(([h,a]) => ({h, a, hs:'', as:''}));
+  });
+  return {
+    teams,
+    groupMatches,
+    knockout: {
+      r32: Array.from({length:16}, () => ({h:'', a:'', hs:'', as:''})),
+      r16: Array.from({length:8}, () => ({h:'', a:'', hs:'', as:''})),
+      qf:  Array.from({length:4}, () => ({h:'', a:'', hs:'', as:''})),
+      sf:  Array.from({length:2}, () => ({h:'', a:'', hs:'', as:''})),
+      f:   [{h:'', a:'', hs:'', as:''}],
+    }
+  };
+}
+
+let state = load() || defaultState();
+
+function save() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+function load() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const s = JSON.parse(raw);
+    if (!s.teams || !s.groupMatches || !s.knockout) return null;
+    const isPlaceholder = GROUPS.every(g => s.teams[g] && s.teams[g].every((t, i) => t === `${g}${i+1}`));
+    if (isPlaceholder) {
+      GROUPS.forEach(g => { s.teams[g] = [...TEAM_NAMES[g]]; });
+    }
+    return s;
+  } catch { return null; }
+}
+
+function computeStandings(g) {
+  const names = state.teams[g];
+  const stats = names.map(name => ({name, P:0, W:0, D:0, L:0, GF:0, GA:0, GD:0, Pts:0}));
+  state.groupMatches[g].forEach(m => {
+    if (m.hs === '' || m.as === '' || m.hs == null || m.as == null) return;
+    const hs = +m.hs, as = +m.as;
+    if (Number.isNaN(hs) || Number.isNaN(as)) return;
+    stats[m.h].P++; stats[m.a].P++;
+    stats[m.h].GF += hs; stats[m.h].GA += as;
+    stats[m.a].GF += as; stats[m.a].GA += hs;
+    if (hs > as) { stats[m.h].W++; stats[m.h].Pts += 3; stats[m.a].L++; }
+    else if (hs < as) { stats[m.a].W++; stats[m.a].Pts += 3; stats[m.h].L++; }
+    else { stats[m.h].D++; stats[m.a].D++; stats[m.h].Pts++; stats[m.a].Pts++; }
+  });
+  stats.forEach(s => s.GD = s.GF - s.GA);
+  return [...stats].sort((a,b) => b.Pts - a.Pts || b.GD - a.GD || b.GF - a.GF)
+    .map((s, i) => ({...s, rank: i+1, group: g}));
+}
+
+function allStandings() {
+  const r = {};
+  GROUPS.forEach(g => r[g] = computeStandings(g));
+  return r;
+}
+
+function bestThirds(allRanks) {
+  const thirds = GROUPS.map(g => allRanks[g][2]).filter(Boolean);
+  return [...thirds].sort((a,b) => b.Pts - a.Pts || b.GD - a.GD || b.GF - a.GF);
+}
+
+function renderGroups() {
+  const root = document.getElementById('groups');
+  const grid = document.createElement('div');
+  grid.className = 'group-grid';
+  const ranks = allStandings();
+  GROUPS.forEach(g => {
+    const card = document.createElement('div');
+    card.className = 'group';
+    card.innerHTML = `<h3>Group ${g}</h3>`;
+
+    state.teams[g].forEach((name, i) => {
+      const inp = document.createElement('input');
+      inp.className = 'team-input';
+      inp.value = name;
+      inp.placeholder = `${g}${i+1}`;
+      inp.addEventListener('input', e => {
+        state.teams[g][i] = e.target.value;
+        save();
+        scheduleRender();
+      });
+      card.appendChild(inp);
+    });
+
+    const tbl = document.createElement('table');
+    tbl.innerHTML = `
+      <thead><tr>
+        <th style="text-align:left">#</th>
+        <th style="text-align:left">Team</th>
+        <th>P</th><th>W</th><th>D</th><th>L</th>
+        <th>GF</th><th>GA</th><th>GD</th><th>Pts</th>
+      </tr></thead>`;
+    const tb = document.createElement('tbody');
+    ranks[g].forEach((r, i) => {
+      const tr = document.createElement('tr');
+      if (i === 0) tr.className = 'qual-1';
+      else if (i === 1) tr.className = 'qual-2';
+      else if (i === 2) tr.className = 'qual-3';
+      tr.innerHTML = `
+        <td>${i+1}</td>
+        <td class="team-name">${escapeHtml(r.name)}</td>
+        <td>${r.P}</td><td>${r.W}</td><td>${r.D}</td><td>${r.L}</td>
+        <td>${r.GF}</td><td>${r.GA}</td><td>${r.GD}</td>
+        <td><strong>${r.Pts}</strong></td>`;
+      tb.appendChild(tr);
+    });
+    tbl.appendChild(tb);
+    card.appendChild(tbl);
+
+    const matches = document.createElement('div');
+    matches.className = 'matches';
+    state.groupMatches[g].forEach((m, idx) => {
+      const row = document.createElement('div');
+      row.className = 'match';
+      row.innerHTML = `
+        <div class="home">${escapeHtml(state.teams[g][m.h])}</div>
+        <input class="score-input" type="number" min="0" inputmode="numeric" value="${m.hs}" data-g="${g}" data-i="${idx}" data-side="hs">
+        <div style="text-align:center;color:var(--muted)">–</div>
+        <input class="score-input" type="number" min="0" inputmode="numeric" value="${m.as}" data-g="${g}" data-i="${idx}" data-side="as">
+        <div class="away">${escapeHtml(state.teams[g][m.a])}</div>`;
+      matches.appendChild(row);
+    });
+    matches.addEventListener('input', e => {
+      const t = e.target;
+      if (!t.classList.contains('score-input')) return;
+      const gg = t.dataset.g, ii = +t.dataset.i, side = t.dataset.side;
+      state.groupMatches[gg][ii][side] = t.value;
+      save();
+      scheduleRender();
+    });
+    card.appendChild(matches);
+    grid.appendChild(card);
+  });
+  root.replaceChildren(grid);
+}
+
+function renderStandings() {
+  const root = document.getElementById('standings');
+  const ranks = allStandings();
+  const winners = GROUPS.map(g => ranks[g][0]).filter(Boolean);
+  const runners = GROUPS.map(g => ranks[g][1]).filter(Boolean);
+  const thirds = bestThirds(ranks);
+  const top8thirds = thirds.slice(0, 8);
+  const out8thirds = thirds.slice(8);
+
+  const summary = document.createElement('div');
+  summary.className = 'qualified-summary';
+  summary.innerHTML = `
+    <h2>Qualified for Round of 32</h2>
+    <div class="legend">
+      <span class="l1"></span> Winner &nbsp;
+      <span class="l2"></span> Runner-up &nbsp;
+      <span class="l3"></span> Best 3rd
+    </div>
+  `;
+
+  const list = document.createElement('div');
+  list.className = 'qual-list';
+  winners.forEach(t => list.appendChild(tag(t, 'w', `1${t.group}`)));
+  runners.forEach(t => list.appendChild(tag(t, 'r', `2${t.group}`)));
+  top8thirds.forEach(t => list.appendChild(tag(t, 't', `3${t.group}`)));
+  summary.appendChild(list);
+
+  const thirdSummary = document.createElement('div');
+  thirdSummary.className = 'qualified-summary third-table';
+  thirdSummary.innerHTML = `<h2>Best Third-Placed Teams</h2>`;
+  if (thirds.length === 0) {
+    const e = document.createElement('div');
+    e.className = 'empty-msg';
+    e.textContent = 'Enter group results to see rankings.';
+    thirdSummary.appendChild(e);
+  } else {
+    const tbl = document.createElement('table');
+    tbl.innerHTML = `
+      <thead><tr>
+        <th style="text-align:left">#</th>
+        <th style="text-align:left">Team</th>
+        <th>Group</th>
+        <th>P</th><th>W</th><th>D</th><th>L</th>
+        <th>GF</th><th>GA</th><th>GD</th><th>Pts</th>
+        <th>Status</th>
+      </tr></thead>`;
+    const tb = document.createElement('tbody');
+    thirds.forEach((r, i) => {
+      const tr = document.createElement('tr');
+      if (i < 8) tr.className = 'qual-3';
+      tr.innerHTML = `
+        <td>${i+1}</td>
+        <td class="team-name">${escapeHtml(r.name)}</td>
+        <td>${r.group}</td>
+        <td>${r.P}</td><td>${r.W}</td><td>${r.D}</td><td>${r.L}</td>
+        <td>${r.GF}</td><td>${r.GA}</td><td>${r.GD}</td>
+        <td><strong>${r.Pts}</strong></td>
+        <td>${i < 8 ? 'Advances' : 'Out'}</td>`;
+      tb.appendChild(tr);
+    });
+    tbl.appendChild(tb);
+    thirdSummary.appendChild(tbl);
+  }
+
+  root.replaceChildren(summary, thirdSummary);
+}
+
+function tag(t, cls, pos) {
+  const el = document.createElement('div');
+  el.className = `qual-tag ${cls}`;
+  el.innerHTML = `<span class="pos">${pos}</span>${escapeHtml(t.name)} <span style="color:var(--muted);font-size:0.75rem;">(${t.Pts}p, ${t.GD>=0?'+':''}${t.GD})</span>`;
+  return el;
+}
+
+function qualifiedTeamNames() {
+  const ranks = allStandings();
+  const set = [];
+  GROUPS.forEach(g => {
+    if (ranks[g][0]) set.push(ranks[g][0].name);
+    if (ranks[g][1]) set.push(ranks[g][1].name);
+  });
+  bestThirds(ranks).slice(0, 8).forEach(t => set.push(t.name));
+  return set.filter(Boolean);
+}
+
+function renderBracket() {
+  const root = document.getElementById('bracket');
+  const pool = qualifiedTeamNames();
+
+  const help = document.createElement('div');
+  help.className = 'qualified-summary';
+  help.innerHTML = `
+    <h2>Knockout Bracket</h2>
+    <p style="color:var(--muted);font-size:0.85rem;">
+      Pick teams from the qualified pool for Round of 32; later rounds offer the winners of the previous round.
+      Enter scores to advance teams. Highlight indicates the winner.
+    </p>
+  `;
+
+  const wrap = document.createElement('div');
+  wrap.className = 'bracket';
+
+  const rounds = [
+    { key: 'r32', title: 'Round of 32', count: 16, source: () => pool },
+    { key: 'r16', title: 'Round of 16', count: 8,  source: () => roundWinners('r32') },
+    { key: 'qf',  title: 'Quarter-finals', count: 4, source: () => roundWinners('r16') },
+    { key: 'sf',  title: 'Semi-finals', count: 2, source: () => roundWinners('qf') },
+    { key: 'f',   title: 'Final', count: 1, source: () => roundWinners('sf') },
+  ];
+
+  rounds.forEach(r => {
+    const col = document.createElement('div');
+    col.className = 'round';
+    const h = document.createElement('h3');
+    h.textContent = r.title;
+    col.appendChild(h);
+    const sources = r.source();
+    for (let i = 0; i < r.count; i++) {
+      const m = state.knockout[r.key][i];
+      col.appendChild(koMatch(r.key, i, m, sources));
+    }
+    wrap.appendChild(col);
+  });
+
+  const champ = championLine();
+  if (champ) {
+    const c = document.createElement('div');
+    c.className = 'qualified-summary';
+    c.style.marginTop = '12px';
+    c.style.textAlign = 'center';
+    c.innerHTML = `<h2 style="color:var(--accent2);">🏆 Champion: ${escapeHtml(champ)}</h2>`;
+    root.replaceChildren(help, wrap, c);
+  } else {
+    root.replaceChildren(help, wrap);
+  }
+}
+
+function roundWinners(key) {
+  return state.knockout[key].map(m => winnerOf(m)).filter(Boolean);
+}
+
+function winnerOf(m) {
+  if (!m.h || !m.a) return null;
+  if (m.hs === '' || m.as === '' || m.hs == null || m.as == null) return null;
+  const hs = +m.hs, as = +m.as;
+  if (Number.isNaN(hs) || Number.isNaN(as)) return null;
+  if (hs > as) return m.h;
+  if (as > hs) return m.a;
+  return null;
+}
+
+function championLine() {
+  const f = state.knockout.f[0];
+  return winnerOf(f);
+}
+
+function koMatch(key, i, m, sources) {
+  const w = winnerOf(m);
+  const box = document.createElement('div');
+  box.className = 'ko-match';
+
+  const teamOptions = (selected) => {
+    const opts = ['<option value="">— pick team —</option>'];
+    const seen = new Set();
+    sources.forEach(name => {
+      if (!name) return;
+      const v = name;
+      if (seen.has(v)) return;
+      seen.add(v);
+      opts.push(`<option value="${escapeAttr(v)}" ${v === selected ? 'selected' : ''}>${escapeHtml(v)}</option>`);
+    });
+    if (selected && !seen.has(selected)) {
+      opts.push(`<option value="${escapeAttr(selected)}" selected>${escapeHtml(selected)} (out)</option>`);
+    }
+    return opts.join('');
+  };
+
+  const rowH = document.createElement('div');
+  rowH.className = 'ko-row' + (w === m.h ? ' win' : '');
+  rowH.innerHTML = `
+    <select class="ko-team" data-r="${key}" data-i="${i}" data-f="h">${teamOptions(m.h)}</select>
+    <input class="score-input" type="number" min="0" inputmode="numeric" value="${m.hs}" data-r="${key}" data-i="${i}" data-f="hs">
+  `;
+  const rowA = document.createElement('div');
+  rowA.className = 'ko-row' + (w === m.a ? ' win' : '');
+  rowA.innerHTML = `
+    <select class="ko-team" data-r="${key}" data-i="${i}" data-f="a">${teamOptions(m.a)}</select>
+    <input class="score-input" type="number" min="0" inputmode="numeric" value="${m.as}" data-r="${key}" data-i="${i}" data-f="as">
+  `;
+  box.appendChild(rowH);
+  box.appendChild(rowA);
+
+  box.addEventListener('input', e => {
+    const t = e.target;
+    if (!t.dataset.r) return;
+    const r = t.dataset.r, idx = +t.dataset.i, f = t.dataset.f;
+    state.knockout[r][idx][f] = t.value;
+    save();
+    scheduleRender();
+  });
+  box.addEventListener('change', e => {
+    const t = e.target;
+    if (!t.dataset.r || t.tagName !== 'SELECT') return;
+    const r = t.dataset.r, idx = +t.dataset.i, f = t.dataset.f;
+    state.knockout[r][idx][f] = t.value;
+    save();
+    scheduleRender();
+  });
+  return box;
+}
+
+function escapeHtml(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
+}
+function escapeAttr(s) { return escapeHtml(s); }
+
+let renderQueued = false;
+function scheduleRender() {
+  if (renderQueued) return;
+  renderQueued = true;
+  requestAnimationFrame(() => {
+    renderQueued = false;
+    renderActive();
+  });
+}
+
+function renderActive() {
+  const tab = document.querySelector('nav button.active').dataset.tab;
+  if (tab === 'groups') renderGroups();
+  else if (tab === 'standings') renderStandings();
+  else if (tab === 'bracket') renderBracket();
+}
+
+function setTab(name) {
+  document.querySelectorAll('nav button').forEach(b => {
+    b.classList.toggle('active', b.dataset.tab === name);
+  });
+  document.querySelectorAll('main > section').forEach(s => {
+    s.classList.toggle('active', s.id === name);
+  });
+  renderActive();
+}
+
+document.querySelectorAll('nav button').forEach(b => {
+  b.addEventListener('click', () => setTab(b.dataset.tab));
+});
+
+document.getElementById('reset-btn').addEventListener('click', () => {
+  if (!confirm('Reset all data? This cannot be undone.')) return;
+  state = defaultState();
+  save();
+  renderActive();
+});
+
+document.getElementById('export-btn').addEventListener('click', () => {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'wc2026-tracker.json';
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+document.getElementById('import-btn').addEventListener('click', () => {
+  document.getElementById('import-file').click();
+});
+document.getElementById('import-file').addEventListener('change', e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const s = JSON.parse(r.result);
+      if (!s.teams || !s.groupMatches || !s.knockout) throw new Error('invalid');
+      state = s;
+      save();
+      renderActive();
+      alert('Import successful.');
+    } catch {
+      alert('Could not import: invalid file.');
+    }
+  };
+  r.readAsText(f);
+});
+
+renderActive();
+</script>
+</body>
+</html>
