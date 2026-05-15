@@ -264,11 +264,26 @@ const STORAGE_KEY = 'wc2026-tracker-v1';
 
 const MATCH_PAIRS = [[0,1],[2,3],[0,2],[1,3],[0,3],[1,2]];
 
+const TEAM_NAMES = {
+  A: ['Mexico', 'South Africa', 'Korea Republic', 'Czechia'],
+  B: ['Canada', 'Bosnia and Herzegovina', 'Qatar', 'Switzerland'],
+  C: ['Brazil', 'Morocco', 'Haiti', 'Scotland'],
+  D: ['United States', 'Paraguay', 'Australia', 'Türkiye'],
+  E: ['Germany', 'Curaçao', 'Ivory Coast', 'Ecuador'],
+  F: ['Netherlands', 'Japan', 'Sweden', 'Tunisia'],
+  G: ['Belgium', 'Egypt', 'Iran', 'New Zealand'],
+  H: ['Spain', 'Cape Verde', 'Saudi Arabia', 'Uruguay'],
+  I: ['France', 'Senegal', 'Iraq', 'Norway'],
+  J: ['Argentina', 'Algeria', 'Austria', 'Jordan'],
+  K: ['Portugal', 'DR Congo', 'Uzbekistan', 'Colombia'],
+  L: ['England', 'Croatia', 'Ghana', 'Panama'],
+};
+
 function defaultState() {
   const teams = {};
   const groupMatches = {};
   GROUPS.forEach(g => {
-    teams[g] = [`${g}1`, `${g}2`, `${g}3`, `${g}4`];
+    teams[g] = [...TEAM_NAMES[g]];
     groupMatches[g] = MATCH_PAIRS.map(([h,a]) => ({h, a, hs:'', as:''}));
   });
   return {
@@ -295,6 +310,10 @@ function load() {
     if (!raw) return null;
     const s = JSON.parse(raw);
     if (!s.teams || !s.groupMatches || !s.knockout) return null;
+    const isPlaceholder = GROUPS.every(g => s.teams[g] && s.teams[g].every((t, i) => t === `${g}${i+1}`));
+    if (isPlaceholder) {
+      GROUPS.forEach(g => { s.teams[g] = [...TEAM_NAMES[g]]; });
+    }
     return s;
   } catch { return null; }
 }
