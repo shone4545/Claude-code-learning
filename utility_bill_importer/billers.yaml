@@ -1,0 +1,118 @@
+# =====================================================================
+# Biller registry
+# ---------------------------------------------------------------------
+# Each biller is matched by `identifiers` (any substring found in the PDF
+# text => this biller). Then `fields` regex patterns extract the values.
+#
+# Regex notes:
+#   - Patterns are case-insensitive, multiline.
+#   - The FIRST capturing group ( ... ) is the captured value.
+#   - List multiple patterns per field; the first that matches wins.
+#     This lets one biller cover both Bahasa Malaysia and English layouts.
+#   - Amounts: capture the raw number; the parser strips commas/RM.
+#   - Dates: capture raw date text; parser tries common MY formats.
+#
+# To add a NEW biller: copy a block, change identifiers/supplier_code,
+# and tune patterns against a real sample (see `python main.py --inspect`).
+# =====================================================================
+
+billers:
+
+  # ------------------------- ELECTRICITY -------------------------
+  - name: "Tenaga Nasional Berhad"
+    category: "Electricity"
+    supplier_code: "TNB"           # must match supplier code in SQL Account
+    gl_account: "910-100"
+    tax_code: "ZP"                 # electricity generally not SST-taxable
+    identifiers: ["TENAGA NASIONAL", "TNB", "myTNB"]
+    fields:
+      account_number:
+        - 'No\.?\s*Akaun[:\s]*([0-9]{6,14})'
+        - 'Account\s*(?:No|Number)[:\s]*([0-9]{6,14})'
+      invoice_no:
+        - 'No\.?\s*Bil[:\s]*([A-Z0-9\-]+)'
+        - 'Bill\s*(?:No|Number)[:\s]*([A-Z0-9\-]+)'
+      bill_date:
+        - 'Tarikh\s*Bil[:\s]*([0-9]{1,2}[\s\-/.][A-Za-z0-9]{2,9}[\s\-/.][0-9]{2,4})'
+        - 'Bill\s*Date[:\s]*([0-9]{1,2}[\s\-/.][A-Za-z0-9]{2,9}[\s\-/.][0-9]{2,4})'
+      due_date:
+        - 'Tarikh\s*Akhir\s*Bayaran[:\s]*([0-9]{1,2}[\s\-/.][A-Za-z0-9]{2,9}[\s\-/.][0-9]{2,4})'
+        - 'Due\s*Date[:\s]*([0-9]{1,2}[\s\-/.][A-Za-z0-9]{2,9}[\s\-/.][0-9]{2,4})'
+      total_amount:
+        - 'Jumlah\s*Perlu\s*Dibayar[:\s]*(?:RM)?\s*([0-9,]+\.[0-9]{2})'
+        - 'Total\s*Amount\s*(?:Due|Payable)[:\s]*(?:RM)?\s*([0-9,]+\.[0-9]{2})'
+      billing_period:
+        - 'Tempoh\s*Bil[:\s]*([0-9]{1,2}[\s\-/.][A-Za-z0-9]{2,9}[\s\-/.][0-9]{2,4}\s*[-–]\s*[0-9]{1,2}[\s\-/.][A-Za-z0-9]{2,9}[\s\-/.][0-9]{2,4})'
+
+  # ------------------------- WATER -------------------------
+  - name: "Air Selangor"
+    category: "Water"
+    supplier_code: "AIRSEL"
+    gl_account: "910-200"
+    tax_code: "ZP"
+    identifiers: ["AIR SELANGOR", "PENGURUSAN AIR SELANGOR"]
+    fields:
+      account_number:
+        - 'No\.?\s*Akaun[:\s]*([0-9]{6,14})'
+        - 'Account\s*(?:No|Number)[:\s]*([0-9]{6,14})'
+      invoice_no:
+        - 'No\.?\s*Bil[:\s]*([A-Z0-9\-]+)'
+        - 'Invoice\s*(?:No|Number)[:\s]*([A-Z0-9\-]+)'
+      bill_date:
+        - 'Tarikh\s*Bil[:\s]*([0-9]{1,2}[\s\-/.][A-Za-z0-9]{2,9}[\s\-/.][0-9]{2,4})'
+        - 'Bill\s*Date[:\s]*([0-9]{1,2}[\s\-/.][A-Za-z0-9]{2,9}[\s\-/.][0-9]{2,4})'
+      due_date:
+        - 'Tarikh\s*Akhir\s*Bayaran[:\s]*([0-9]{1,2}[\s\-/.][A-Za-z0-9]{2,9}[\s\-/.][0-9]{2,4})'
+        - 'Due\s*Date[:\s]*([0-9]{1,2}[\s\-/.][A-Za-z0-9]{2,9}[\s\-/.][0-9]{2,4})'
+      total_amount:
+        - 'Jumlah\s*Perlu\s*Dibayar[:\s]*(?:RM)?\s*([0-9,]+\.[0-9]{2})'
+        - 'Total\s*(?:Amount\s*)?(?:Due|Payable)[:\s]*(?:RM)?\s*([0-9,]+\.[0-9]{2})'
+
+  # ------------------------- TELCO (fixed/broadband) -------------------------
+  - name: "TM Unifi"
+    category: "Telco"
+    supplier_code: "TM"
+    gl_account: "910-300"
+    tax_code: "SV"                 # telco service tax 8% (SST) — adjust to your code
+    identifiers: ["TELEKOM MALAYSIA", "UNIFI", "TM ONLINE"]
+    fields:
+      account_number:
+        - 'No\.?\s*Akaun[:\s]*([0-9]{6,14})'
+        - 'Account\s*(?:No|Number)[:\s]*([0-9]{6,14})'
+      invoice_no:
+        - 'No\.?\s*Bil[:\s]*([A-Z0-9\-]+)'
+        - 'Bill\s*(?:No|Number)[:\s]*([A-Z0-9\-]+)'
+      bill_date:
+        - 'Tarikh\s*Bil[:\s]*([0-9]{1,2}[\s\-/.][A-Za-z0-9]{2,9}[\s\-/.][0-9]{2,4})'
+        - 'Bill\s*Date[:\s]*([0-9]{1,2}[\s\-/.][A-Za-z0-9]{2,9}[\s\-/.][0-9]{2,4})'
+      due_date:
+        - 'Tarikh\s*Akhir\s*Bayaran[:\s]*([0-9]{1,2}[\s\-/.][A-Za-z0-9]{2,9}[\s\-/.][0-9]{2,4})'
+        - 'Due\s*Date[:\s]*([0-9]{1,2}[\s\-/.][A-Za-z0-9]{2,9}[\s\-/.][0-9]{2,4})'
+      total_amount:
+        - 'Jumlah\s*Perlu\s*Dibayar[:\s]*(?:RM)?\s*([0-9,]+\.[0-9]{2})'
+        - 'Total\s*Amount\s*(?:Due|Payable)[:\s]*(?:RM)?\s*([0-9,]+\.[0-9]{2})'
+      tax_amount:
+        - '(?:Cukai\s*Perkhidmatan|Service\s*Tax)[^0-9]*([0-9,]+\.[0-9]{2})'
+
+  # ------------------------- TELCO (mobile) -------------------------
+  - name: "Maxis"
+    category: "Telco"
+    supplier_code: "MAXIS"
+    gl_account: "910-300"
+    tax_code: "SV"
+    identifiers: ["MAXIS BROADBAND", "MAXIS MOBILE", "MAXIS BERHAD"]
+    fields:
+      account_number:
+        - 'Account\s*(?:No|Number)[:\s]*([0-9]{6,14})'
+        - 'No\.?\s*Akaun[:\s]*([0-9]{6,14})'
+      invoice_no:
+        - 'Invoice\s*(?:No|Number)[:\s]*([A-Z0-9\-]+)'
+        - 'Bill\s*(?:No|Number)[:\s]*([A-Z0-9\-]+)'
+      bill_date:
+        - 'Bill\s*Date[:\s]*([0-9]{1,2}[\s\-/.][A-Za-z0-9]{2,9}[\s\-/.][0-9]{2,4})'
+      due_date:
+        - 'Due\s*Date[:\s]*([0-9]{1,2}[\s\-/.][A-Za-z0-9]{2,9}[\s\-/.][0-9]{2,4})'
+      total_amount:
+        - 'Total\s*Amount\s*(?:Due|Payable)[:\s]*(?:RM)?\s*([0-9,]+\.[0-9]{2})'
+      tax_amount:
+        - 'Service\s*Tax[^0-9]*([0-9,]+\.[0-9]{2})'

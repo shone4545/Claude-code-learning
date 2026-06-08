@@ -1,0 +1,13 @@
+TENAGA NASIONAL BERHAD
+myTNB e-Bill
+
+No. Akaun: 220012345678
+No. Bil: 1234567890
+Tarikh Bil: 05-Mac-2026
+Tempoh Bil: 01-Feb-2026 - 28-Feb-2026
+Tarikh Akhir Bayaran: 25-Mac-2026
+
+Caj Semasa                          RM 358.40
+Jumlah Perlu Dibayar:               RM 358.40
+
+Sila bayar sebelum tarikh akhir untuk mengelakkan gangguan bekalan.

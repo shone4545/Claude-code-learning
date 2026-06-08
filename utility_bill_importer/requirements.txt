@@ -1,0 +1,13 @@
+# Core
+pyyaml>=6.0
+python-dotenv>=1.0.0
+openpyxl>=3.1.0
+
+# PDF text extraction
+pdfplumber>=0.11.0
+
+# OCR fallback (for scanned/image-only PDFs)
+# Requires system packages: tesseract-ocr and poppler-utils
+pytesseract>=0.3.10
+pdf2image>=1.17.0
+Pillow>=10.0.0

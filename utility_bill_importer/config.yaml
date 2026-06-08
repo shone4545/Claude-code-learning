@@ -1,0 +1,66 @@
+# =====================================================================
+# Utility Bill Importer — general configuration
+# (Secrets like IMAP password live in .env, NOT here.)
+# =====================================================================
+
+email:
+  # How many days back to scan, and whether to only read UNSEEN mail.
+  search_since_days: 45
+  unseen_only: false
+  # Only download attachments whose filename matches these (case-insensitive).
+  attachment_extensions: [".pdf"]
+  # Optional: restrict to emails from these senders (substring match).
+  # Leave empty to accept any sender in the folder.
+  allowed_senders: []
+  # Mark emails as read after successfully processing.
+  mark_as_seen: false
+
+paths:
+  inbox_pdfs: "inbox_pdfs"     # where downloaded PDFs are saved
+  output: "output"             # where import files are written
+  state_file: "state.json"     # tracks already-processed bills (dedupe)
+
+ocr:
+  # If a PDF has no extractable text (scanned image), fall back to OCR.
+  enabled: true
+  languages: "eng+msa"         # English + Malay; needs tesseract lang packs
+  dpi: 300
+
+export:
+  # Output format(s): csv, xlsx, or both.
+  formats: ["csv", "xlsx"]
+  filename_prefix: "SQLAcc_PurchaseInvoice"
+  # One purchase invoice = one row (utility bills are single-line).
+
+  # --------------------------------------------------------------
+  # SQL Accounting (eStream SQL Acc) Purchase Invoice import columns.
+  # SQL Account's import wizard lets you MAP these column headers to its
+  # internal fields, so the exact names here just need to be consistent.
+  # Adjust the header text to match your SQL Account import template if
+  # you already have one. Each entry maps:  OutputHeader: bill_field
+  # Available bill_field values are listed in src/models.py (BillRecord).
+  # --------------------------------------------------------------
+  columns:
+    DocNo: invoice_no
+    DocDate: bill_date
+    DueDate: due_date
+    SupplierCode: supplier_code
+    SupplierName: biller_name
+    Description: description
+    AccNo: gl_account
+    Amount: amount_excl_tax        # tax-exclusive
+    TaxCode: tax_code
+    TaxAmt: tax_amount
+    TaxInclusive: tax_inclusive    # "T"/"F"
+    Total: total_amount
+    Remark1: account_number
+    Remark2: billing_period
+    ReviewFlag: needs_review       # "REVIEW" if any field is low-confidence
+
+# Default GL expense account code (SQL Account chart of accounts).
+# Per-biller overrides live in billers.yaml.
+defaults:
+  currency: "MYR"
+  gl_account: "910-000"            # e.g. Utilities Expense — change to yours
+  tax_code: "ZP"                   # SST: utilities often non-taxable; telco override
+  tax_inclusive: "T"

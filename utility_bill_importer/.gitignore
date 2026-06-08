@@ -1,0 +1,16 @@
+# Secrets
+.env
+
+# Downloaded bills & generated output (may contain sensitive data)
+inbox_pdfs/*.pdf
+output/*.csv
+output/*.xlsx
+
+# Processing state
+state.json
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
