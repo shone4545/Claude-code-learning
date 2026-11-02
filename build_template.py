@@ -1,5 +1,6 @@
 """
-Malaysia Commercial Banking Loan Repayment Template Builder — v3
+Malaysia Commercial Banking Loan Repayment Template Builder — v4
+  (v4 adds debt_toolkit.py sheets + fixes text-date bug)
   Bank 1: Maybank Islamic - CMTF-i           (FARMIERA BREEDER FARM SDN. BHD.)
   Bank 2: Alliance Bank   - Fixed Loan       (FARMIERA AGRO RESOURCES SDN. BHD.)
   Bank 3: MBSB Islamic    - Tawarruq/Murabahah  (FARMIERA HOLDINGS SDN. BHD. - placeholder)
@@ -12,7 +13,7 @@ from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
 
-OUT = "/home/user/Claude-code-learning/Loan_Repayment_Template_v3_MBB_ALB_MBSB.xlsx"
+OUT = "/home/user/Claude-code-learning/Loan_Repayment_Template_v4_Debt_Toolkit.xlsx"
 
 # ---- Styles ----
 HDR_FONT = Font(bold=True, color="FFFFFF", size=11)
@@ -524,15 +525,15 @@ def build_fs_disclosure(ws, label, amort_sheet, principal_col,
     ws["A6"].font = SUB_FONT; ws["A6"].fill = SUB_FILL
     ws.merge_cells("A6:D6")
     ws["A7"] = "Closing principal at FYE (RM)"
-    ws["B7"] = f'=SUMIFS({amort_sheet}!{principal_col}:{principal_col},{amort_sheet}!B:B,">"&B4)'
+    ws["B7"] = f'=SUMIFS({amort_sheet}!${principal_col}$9:${principal_col}$400,{amort_sheet}!$B$9:$B$400,">"&B4)'
     ws["B7"].number_format = NUM_FMT
     ws["A8"] = "Current portion (next 12 mths) (RM)"
-    ws["B8"] = f'=SUMIFS({amort_sheet}!{principal_col}:{principal_col},{amort_sheet}!{bucket_col}:{bucket_col},"Current")'
+    ws["B8"] = f'=SUMIFS({amort_sheet}!${principal_col}$9:${principal_col}$400,{amort_sheet}!${bucket_col}$9:${bucket_col}$400,"Current")'
     ws["B8"].number_format = NUM_FMT
     ws["A9"] = "Non-current portion (RM)"
-    ws["B9"] = (f'=SUMIFS({amort_sheet}!{principal_col}:{principal_col},{amort_sheet}!{bucket_col}:{bucket_col},"1-2 yrs")'
-                f'+SUMIFS({amort_sheet}!{principal_col}:{principal_col},{amort_sheet}!{bucket_col}:{bucket_col},"2-5 yrs")'
-                f'+SUMIFS({amort_sheet}!{principal_col}:{principal_col},{amort_sheet}!{bucket_col}:{bucket_col},"Over 5 yrs")')
+    ws["B9"] = (f'=SUMIFS({amort_sheet}!${principal_col}$9:${principal_col}$400,{amort_sheet}!${bucket_col}$9:${bucket_col}$400,"1-2 yrs")'
+                f'+SUMIFS({amort_sheet}!${principal_col}$9:${principal_col}$400,{amort_sheet}!${bucket_col}$9:${bucket_col}$400,"2-5 yrs")'
+                f'+SUMIFS({amort_sheet}!${principal_col}$9:${principal_col}$400,{amort_sheet}!${bucket_col}$9:${bucket_col}$400,"Over 5 yrs")')
     ws["B9"].number_format = NUM_FMT
     ws["A10"] = "Sub-total (current + non-current)"
     ws["B10"] = "=B8+B9"
@@ -553,7 +554,7 @@ def build_fs_disclosure(ws, label, amort_sheet, principal_col,
     for i, (lbl, b) in enumerate(profile, start=14):
         ws.cell(row=i, column=1, value=lbl)
         cell = ws.cell(row=i, column=2,
-            value=f'=SUMIFS({amort_sheet}!{principal_col}:{principal_col},{amort_sheet}!{bucket_col}:{bucket_col},"{b}")')
+            value=f'=SUMIFS({amort_sheet}!${principal_col}$9:${principal_col}$400,{amort_sheet}!${bucket_col}$9:${bucket_col}$400,"{b}")')
         cell.number_format = NUM_FMT
     ws["A18"] = "Total"
     ws["A18"].font = SUB_FONT
@@ -566,9 +567,9 @@ def build_fs_disclosure(ws, label, amort_sheet, principal_col,
     ws["A21"] = "Year start"
     ws["B21"] = "=EDATE(B4,-12)+1"; ws["B21"].number_format = DATE_FMT
     ws["A22"] = "Charge to P&L (RM)"
-    ws["B22"] = (f'=SUMIFS({amort_sheet}!{interest_col}:{interest_col},'
-                 f'{amort_sheet}!B:B,">="&B21,'
-                 f'{amort_sheet}!B:B,"<="&B4)')
+    ws["B22"] = (f'=SUMIFS({amort_sheet}!${interest_col}$9:${interest_col}$400,'
+                 f'{amort_sheet}!$B$9:$B$400,">="&B21,'
+                 f'{amort_sheet}!$B$9:$B$400,"<="&B4)')
     ws["B22"].number_format = NUM_FMT
 
     ws["A24"] = "MOVEMENT — MFRS 107"
@@ -608,14 +609,14 @@ ws_mbsb["A33"] = "MURABAHAH PRESENTATION (Note Disclosure)"
 ws_mbsb["A33"].font = SUB_FONT; ws_mbsb["A33"].fill = SUB_FILL
 ws_mbsb.merge_cells("A33:D33")
 ws_mbsb["A34"] = "Gross Selling Price at FYE (memo) (RM)"
-ws_mbsb["B34"] = ('=INDEX(Amortisation_MBSB!K:K,'
-                  'MATCH(1,(Amortisation_MBSB!B:B>B4)*1,0))')
+ws_mbsb["B34"] = ('=INDEX(Amortisation_MBSB!$K$9:$K$400,'
+                  'MATCH(1,(Amortisation_MBSB!$B$9:$B$400>B4)*1,0))')
 # array form not robust; alternative simpler: lookup last period <= FYE then take next K
-ws_mbsb["B34"] = ('=SUMIFS(Amortisation_MBSB!E:E,Amortisation_MBSB!B:B,">"&B4)'
-                  '+SUMIFS(Amortisation_MBSB!D:D,Amortisation_MBSB!B:B,">"&B4)')
+ws_mbsb["B34"] = ('=SUMIFS(Amortisation_MBSB!$E$9:$E$400,Amortisation_MBSB!$B$9:$B$400,">"&B4)'
+                  '+SUMIFS(Amortisation_MBSB!$D$9:$D$400,Amortisation_MBSB!$B$9:$B$400,">"&B4)')
 ws_mbsb["B34"].number_format = NUM_FMT
 ws_mbsb["A35"] = "Less: Unearned profit at FYE (RM)"
-ws_mbsb["B35"] = '=SUMIFS(Amortisation_MBSB!D:D,Amortisation_MBSB!B:B,">"&B4)'
+ws_mbsb["B35"] = '=SUMIFS(Amortisation_MBSB!$D$9:$D$400,Amortisation_MBSB!$B$9:$B$400,">"&B4)'
 ws_mbsb["B35"].number_format = NUM_FMT
 ws_mbsb["B35"].font = Font(color="C00000")
 ws_mbsb["A36"] = "Net Murabahah Payable (= Outstanding Principal) (RM)"
@@ -792,6 +793,28 @@ for r_off, row in enumerate(mbsb_codes):
 
 for col, w in zip("ABCD", [26, 44, 38, 42]):
     ws.column_dimensions[col].width = w
+
+# =============================================================
+# v4: Debt headroom / covenant / MFRS 7 / MFRS 123 toolkit sheets
+# =============================================================
+from debt_toolkit import add_toolkit_sheets
+add_toolkit_sheets(wb)
+
+# =============================================================
+# v4 FIX: ISO date strings -> real Excel dates.
+# In v3 dates were written as text ("2026-03-31"). Excel ranks any number
+# below any text, so `B<=$E$3` was always TRUE and every period fell into
+# "Past/Current" -> current / non-current split and MFRS 7 maturity profile
+# all showed ZERO. Convert every ISO date string to a true date serial.
+# =============================================================
+import datetime as _dt, re as _re
+_ISO = _re.compile(r"^\d{4}-\d{2}-\d{2}$")
+for _ws in wb.worksheets:
+    for _row in _ws.iter_rows():
+        for _c in _row:
+            if isinstance(_c.value, str) and _ISO.match(_c.value):
+                _c.value = _dt.datetime.strptime(_c.value, "%Y-%m-%d")
+                _c.number_format = DATE_FMT
 
 # Save
 wb.save(OUT)
